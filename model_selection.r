@@ -103,7 +103,7 @@ for(k in 1:nrow(other.parameters)){
                                   RegressionType,other.parameters[k,1],Regression.Kernel)
   val_err = c(val_err, BestModelElnet$validation.error)
 }
-idx = which(val_err == min(val_err))
+idx = which(val_err == min(val_err))[1]
 Regression.Kernel = Kernel.Options[other.parameters[idx,2]]
         
 
