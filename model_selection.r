@@ -90,30 +90,23 @@ ratio = c(0.85, 0.9, 0.95, 1.)
 choice = c(1,2,3)
 other.parameters = expand.grid(ratio,choice)
 val_err = c()
+####
+lambda = logspace(-3,0,15)                       
+tht = logspace(-2,1.2,15)         
+parameters_on_grid = expand.grid(tht, lambda)  
 #### Now run the fit in parallel
 Lavoratori = detectCores() - 1
 cl <- makeCluster(Lavoratori, type = "FORK")
 for(k in 1:nrow(other.parameters)){
   Regression.Kernel = Kernel.Options[other.parameters[k,2]]
-  lambda = logspace(-3,0,15)                       
-  if(Regression.Kernel == 'Exponential.Kernel'){
-    tht = logspace(-2,1.2,15)         
-  }else{
-    tht = logspace(-2,1.2,15)         
-  }
-  parameters_on_grid = expand.grid(tht, lambda)  
   BestModelElnet = LOO.CV(cl, d.training, TargetList, Embedding, parameters_on_grid, 
                                   RegressionType,other.parameters[k,1],Regression.Kernel)
   val_err = c(val_err, BestModelElnet$validation.error)
 }
 idx = which(val_err == min(val_err))
-Regression.Kernel = Kernel.Options[other.parameters[idx,1]]
-lambda = logspace(-3,0,15)                       
-if(Regression.Kernel == 'Exponential.Kernel'){
-  tht = logspace(-2,1.2,15)         
-}else{
-  tht = logspace(-2,1.2,15)         
-}
+Regression.Kernel = Kernel.Options[other.parameters[idx,2]]
+        
+
 BestModelElnet = LOO.CV(cl, d.training, TargetList, Embedding, parameters_on_grid, 
                                 RegressionType,other.parameters[idx,1],Regression.Kernel)
 stopCluster(cl)
