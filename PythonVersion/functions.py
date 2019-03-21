@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn import preprocessing
-
+import scipy.stats as stat
 
 def time_lagged_ts(dtset, specie = 'all', look_back=1):
 	'''
@@ -24,12 +24,6 @@ def time_lagged_ts(dtset, specie = 'all', look_back=1):
 	                dataY[i,0] = dtset[i+look_back,specie]
 	return np.array(dataX), np.array(dataY)
 
-def linear_predictor(X, J):
-	'''
-	This need to be fixed depending on how you will make the output of the S-map
-	'''
-	return(np.dot(X,J))
-
 def scale_training_data(ts_training):
 	'''
 	This function scale (zero mean, unitary variance) the training data and return
@@ -49,3 +43,19 @@ def unscale_test_data(predicted_data, scaler_ts_training):
 def vcr(X):
 	vol_contraction = [np.trace(X[n]) for n in range(len(X))]
 	return(vol_contraction)
+
+def inference_quality(X,Y):
+	'''
+	Compute the correlation coefficient between infered and true Jacobians
+	X = infered jacobians
+	Y = true jacobians
+	'''
+	dim = np.shape(X[0])[0]
+	M = np.zeros(shape=(dim,dim))
+	for i in range(dim):
+		for j in range(dim):
+			inf_ij = [X[n][i,j] for n in range(len(X))]
+			true_ij = [Y[n][i,j] for n in range(len(X))]
+			M[i,j] = stat.pearsonr(inf_ij, true_ij)[0]
+	return(M)
+	

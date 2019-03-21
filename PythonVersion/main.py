@@ -4,8 +4,7 @@ os.chdir('/Users/simonecenci14/Desktop/Python_SMap/')
 '''
 Things to do:
 
-1) Make the prediction function work properly
-2) Check why you don't get good reconstruction of the VCR (double check the CR model)
+1) Check why you don't get good reconstruction of the VCR 
 
 '''
 
@@ -24,20 +23,32 @@ import matplotlib.pylab as plt
 import scipy.stats as stat
 
 #%%
-ts, jac = mk.make_lv(200)
+ts, jac = mk.make_cr(200)
 
 #%%
+cross_validation_options = ['LOOCV', 'RollingCV']
+cross_validation_type = cross_validation_options[0]
 length_training = 400
 training_set = ts[0:length_training,:]
 true_jacobian = jac[0:length_training]
+### If you are running rolling window cross validation you need the unscale data
+if cross_validation_type == 'RollingCV':
+    unscaled_training_set = training_set 
 training_set, scaler = fn.scale_training_data(training_set)
 parameters = ParameterGrid({'lambda': np.logspace(-3,0,15), 
                             'theta': np.logspace(-1,1.2,15)})
 
 
 #%%
-### Run leave one out cross validation to select the best hyperparameters
-e,l,t = sm.loocv(parameters, training_set)
+if cross_validation_type == 'LOOCV':
+    ### Run leave one out cross validation to select the best hyperparameters
+    print('Running:', cross_validation_type, '... This will take a while ...')
+    e,l,t = sm.loocv(parameters, training_set)
+else:
+    ### Or Rolling window cross validation:
+    print('Running:', cross_validation_type, '... This will take a while ...')
+    e,l,t = sm.rollingcv(parameters, unscaled_training_set, 20)
+
 
 #%%
 #### In sample statistics
@@ -54,7 +65,7 @@ plt.show()
 #%%
 #### Out-of-sample statistics
 orizzonte = 20
-sp = 2
+sp = 0
 pred = smap_object.predict(training_set,orizzonte)
 ### Scale back the prediction using the mean and standard deviation of the training set
 pred = fn.unscale_test_data(pred, scaler)
@@ -74,10 +85,10 @@ print('Out of sample rmse:', rmse_test )
 infered_vcr = fn.vcr(jacobians)
 true_vcr = fn.vcr(true_jacobian)
 
-print('VCR inference quality:', 
-stat.pearsonr(np.delete(true_vcr, np.shape(true_vcr)[0]-1), infered_vcr)[0])
 fig = plt.figure()
 plt.plot(true_vcr, color = 'b')
 plt.plot(infered_vcr , color = 'r')
 plt.show()
-
+print('VCR inference quality:', 
+stat.pearsonr(np.delete(true_vcr, np.shape(true_vcr)[0]-1), infered_vcr)[0])
+print('Correlation matrix of Jacobians:\n', fn.inference_quality(jacobians, true_jacobian))
