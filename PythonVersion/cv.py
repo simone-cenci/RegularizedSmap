@@ -47,3 +47,45 @@ def rollingcv(grid,dat, orizzonte):
 		error.append(np.mean(val_err))
 	idx = min(enumerate(error), key=itemgetter(1))[0]
 	return(error, grid[idx]['lambda'], grid[idx]['theta'])
+
+
+def ensemble_rollingcv(grid,dat, orizzonte):
+	'''
+	Here I run rolling window cross validation using and ensemble method.
+	That is, calling ---- the training data and **** the validation data
+	we iteratively run:
+	iter 1.) -------****
+	iter 2.) --------****
+	iter 3.) ---------****
+	iter 4.) ----------****
+	Then we take the validation error of the best models over the iterations
+	'''
+	error = []
+	iterations = 30
+	for k in range(len(grid)):
+		r = smr.SMRidge(grid[k]['lambda'], grid[k]['theta'])
+		val_err = []
+		for n in range(iterations):
+			tr_dat = dat[0:(np.shape(dat)[0]-iterations+n-orizzonte),:]
+			tr_dat, scaler_cv = fn.scale_training_data(tr_dat)
+			prd = r.predict(tr_dat,orizzonte)
+			prd = fn.unscale_test_data(prd, scaler_cv)
+
+			val_dat = dat[(np.shape(dat)[0]-iterations+n-orizzonte):(np.shape(dat)[0]-iterations+n),:]
+			val_err.append(r.score(val_dat,prd))
+
+		error.append(np.mean(val_err))
+	lam = []
+	tht = []
+	er = []
+	min_error = min(error)
+	prog = True
+	while prog:
+		idx,val = min(enumerate(error), key=itemgetter(1))
+		lam.append(grid[idx]['lambda'])
+		tht.append(grid[idx]['theta'])
+		er.append(error[idx])
+		error = np.delete(error, idx)
+		if val>min_error*1.2:
+			prog = False
+	return(er,lam,tht)

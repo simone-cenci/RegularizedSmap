@@ -66,8 +66,8 @@ plt.show()
 
 #%%
 #### Out-of-sample statistics
-orizzonte = 90
-sp = 1
+orizzonte = 50
+sp = 0
 pred = smap_object.predict(training_set,orizzonte)
 ### Scale back the prediction using the mean and standard deviation of the training set
 pred = fn.unscale_test_data(pred, scaler)

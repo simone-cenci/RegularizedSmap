@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn import preprocessing
 import scipy.stats as stat
-
+from statsmodels.stats.weightstats import DescrStatsW
 def time_lagged_ts(dtset, specie = 'all', look_back=1):
 	'''
 	Input dtset = time series
@@ -58,4 +58,21 @@ def inference_quality(X,Y):
 			true_ij = [Y[n][i,j] for n in range(len(X))]
 			M[i,j] = stat.pearsonr(inf_ij, true_ij)[0]
 	return(M)
-	
+
+### Some function for the ensemble method
+def make_weights(E):
+	Z = np.sum([1./(n+1)*np.exp(-E[n]) for n in range(len(E))])
+	w = [1./(n+1)*np.exp(-E[n])/Z for n in range(len(E))]
+	return(w)
+def ensemble_forecast(X,E):
+	dim0 = np.shape(X[0])[0]
+	dim1 = np.shape(X[0])[1]
+	M = np.zeros(shape=(dim0,dim1))
+	S = np.zeros(shape=(dim0,dim1))
+	w = make_weights(E)
+	for i in range(dim0):
+		for j in range(dim1):
+			weighted_stats = DescrStatsW([X[n][i,j] for n in range(len(X))], w, ddof=0)
+			M[i,j] = weighted_stats.mean
+			S[i,j] = weighted_stats.std/np.sqrt(len(X))
+	return(M,S)
