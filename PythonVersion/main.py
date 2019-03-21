@@ -1,6 +1,3 @@
-import os
-os.chdir('/Users/simonecenci14/Desktop/Python_SMap/')
-
 '''
 Things to do:
 
@@ -8,19 +5,21 @@ Things to do:
 
 '''
 
-
 #%%
 import importlib
 import functions as fn
-importlib.reload(fn)
 import numpy as np
-import SMap as sm
-importlib.reload(sm)
+import SMap_ridge as smr
+import cv as cv
 from sklearn.model_selection import ParameterGrid
 import make_ts as mk
-importlib.reload(mk)
 import matplotlib.pylab as plt
+importlib.reload(fn)
+importlib.reload(smr)
+importlib.reload(cv)
+importlib.reload(mk)
 import scipy.stats as stat
+
 
 #%%
 ts, jac = mk.make_cr(200)
@@ -28,6 +27,7 @@ ts, jac = mk.make_cr(200)
 #%%
 cross_validation_options = ['LOOCV', 'RollingCV']
 cross_validation_type = cross_validation_options[0]
+print('Cross validation method:', cross_validation_type)
 length_training = 400
 training_set = ts[0:length_training,:]
 true_jacobian = jac[0:length_training]
@@ -39,20 +39,22 @@ parameters = ParameterGrid({'lambda': np.logspace(-3,0,15),
                             'theta': np.logspace(-1,1.2,15)})
 
 
+
 #%%
 if cross_validation_type == 'LOOCV':
     ### Run leave one out cross validation to select the best hyperparameters
     print('Running:', cross_validation_type, '... This will take a while ...')
-    e,l,t = sm.loocv(parameters, training_set)
+    e,l,t = cv.loocv(parameters, training_set)
+    print(' ... done')
 else:
     ### Or Rolling window cross validation:
     print('Running:', cross_validation_type, '... This will take a while ...')
-    e,l,t = sm.rollingcv(parameters, unscaled_training_set, 20)
-
+    e,l,t = cv.rollingcv(parameters, unscaled_training_set, 20)
+    print(' ... done')
 
 #%%
 #### In sample statistics
-smap_object = sm.SM(l,t)
+smap_object = smr.SMRidge(l,t)
 jacobians = smap_object.get_para(training_set)
 train_pred = smap_object.fit(training_set,jacobians)
 rmse = smap_object.score(training_set[1:np.shape(training_set)[0],:],train_pred)
@@ -64,8 +66,8 @@ plt.show()
 
 #%%
 #### Out-of-sample statistics
-orizzonte = 20
-sp = 0
+orizzonte = 90
+sp = 1
 pred = smap_object.predict(training_set,orizzonte)
 ### Scale back the prediction using the mean and standard deviation of the training set
 pred = fn.unscale_test_data(pred, scaler)
