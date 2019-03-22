@@ -19,7 +19,8 @@ class SMRidge:
 		y is the predictee (1xd vector), i.e. x(t) before x(t+1)
 		'''
 		q = np.ones((np.shape(X)[0],1))*y
-		pairwise_dists = np.sum(np.sqrt(cdist(q, X, 'sqeuclidean')), axis = 0)
+		#pairwise_dists = np.sum(np.sqrt(cdist(q, X, 'sqeuclidean')), axis = 0)
+		pairwise_dists = np.sqrt(np.sum((X-y)**2, axis = 1))
 		K = np.exp(-self.t*pairwise_dists / np.mean(pairwise_dists))
 		return(np.diag(K))
 	def ridge_fit(self, X,Y,W):

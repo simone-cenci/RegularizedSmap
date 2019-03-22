@@ -10,19 +10,16 @@ import importlib
 importlib.reload(smr)
 importlib.reload(fn)
 
-def loocv(grid, dat):
+def fun_loocv(i,grid, dat):
 	'''
-	Leave one out cross validation (automatically implemented in the fit)
+	This is for convenience so that if you want to run 
+	any leave one out cross validation in parallel you can
+	do it easily
 	'''
-	error = []
-	for k in range(len(grid)):
-		r = smr.SMRidge(grid[k]['lambda'], grid[k]['theta'])
-		j = r.get_para(dat)
-		y_pred = r.fit(dat,j)
-		error.append(r.score(dat[1:(np.shape(dat)[0]),:], y_pred))
-	idx = min(enumerate(error), key=itemgetter(1))[0]
-	return(error, grid[idx]['lambda'], grid[idx]['theta'])
-
+	r = smr.SMRidge(grid[i]['lambda'], grid[i]['theta'])
+	j = r.get_para(dat)
+	y_pred = r.fit(dat,j)
+	return(r.score(dat[1:(np.shape(dat)[0]),:], y_pred))
 def fun_rolling(i, grid, dat, orizzonte):
 	'''
 	This is for convenience so that if you want to run 
@@ -41,7 +38,23 @@ def fun_rolling(i, grid, dat, orizzonte):
 		val_err.append(r.score(val_dat,prd))
 	return(np.mean(val_err))
 
-def rollingcv(grid,dat, orizzonte):
+def loocv(grid, dat, par = False):
+	'''
+	Leave one out cross validation (automatically implemented in the fit)
+	'''
+	if par:
+		num_cores = multiprocessing.cpu_count() - 1
+		print('Running in parallel')
+		error = Parallel(n_jobs=num_cores, backend='multiprocessing')(delayed(fun_loocv)(i, grid,dat) for i in range(len(grid)))
+	else:
+		print('Running not in parallel: safest choice at the moment')
+		error = [fun_loocv(i, grid,dat) for i in range(len(grid))]
+	idx = min(enumerate(error), key=itemgetter(1))[0]
+	return(error, grid[idx]['lambda'], grid[idx]['theta'])
+
+
+
+def rollingcv(grid,dat, orizzonte, par = False):
 	'''
 	Here I run rolling window cross validation. That is:
 	calling ---- the training data and **** the validation data
@@ -52,7 +65,13 @@ def rollingcv(grid,dat, orizzonte):
 	iter 4.) ----------****
 	Then we take the validation error over the iterations
 	'''
-	error = [fun_rolling(i, grid,dat, orizzonte) for i in range(len(grid))]
+	if par:
+		num_cores = multiprocessing.cpu_count() - 1
+		print('Running in parallel')
+		error = Parallel(n_jobs=num_cores, backend='multiprocessing')(delayed(fun_rolling)(i, grid,dat, orizzonte) for i in range(len(grid)))
+	else:
+		print('Running not in parallel: safest choice at the moment')
+		error = [fun_rolling(i, grid,dat, orizzonte) for i in range(len(grid))]
 	idx = min(enumerate(error), key=itemgetter(1))[0]
 	return(error, grid[idx]['lambda'], grid[idx]['theta'])
 

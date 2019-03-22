@@ -12,6 +12,7 @@ import numpy as np
 import SMap_ridge as smr
 import cv as cv
 from sklearn.model_selection import ParameterGrid
+from sklearn import preprocessing
 import make_ts as mk
 import matplotlib.pylab as plt
 importlib.reload(fn)
@@ -22,15 +23,15 @@ import scipy.stats as stat
 
 
 #%%
-ts, jac = mk.make_lv(200)
+ts, jac = mk.make_hs(200)
 
 #%%
 cross_validation_options = ['LOOCV', 'RollingCV']
-cross_validation_type = cross_validation_options[1]
+cross_validation_type = cross_validation_options[0]
 print('Cross validation method:', cross_validation_type)
 length_training = 400
 training_set = ts[0:length_training,:]
-true_jacobian = jac[0:length_training]
+true_jacobian = jac[1:length_training+1]
 ### If you are running rolling window cross validation you need the unscale data
 if cross_validation_type == 'RollingCV':
     unscaled_training_set = training_set 
@@ -44,12 +45,12 @@ parameters = ParameterGrid({'lambda': np.logspace(-3,0,15),
 if cross_validation_type == 'LOOCV':
     ### Run leave one out cross validation to select the best hyperparameters
     print('Running:', cross_validation_type, '... This will take a while ...')
-    e,l,t = cv.loocv(parameters, training_set)
+    e,l,t = cv.loocv(parameters, training_set, par = False)
     print(' ... done')
 else:
     ### Or Rolling window cross validation:
     print('Running:', cross_validation_type, '... This will take a while ...')
-    e,l,t = cv.rollingcv(parameters, unscaled_training_set, 20)
+    e,l,t = cv.rollingcv(parameters, unscaled_training_set, 20, par = False)
     print(' ... done')
 
 #%%
@@ -84,13 +85,14 @@ print('Out of sample rmse:', rmse_test )
 
 
 #%%
-infered_vcr = fn.vcr(jacobians)
-true_vcr = fn.vcr(true_jacobian)
-
+infered_vcr = preprocessing.scale(fn.vcr(jacobians))
+true_vcr = preprocessing.scale(fn.vcr(true_jacobian))
+plt.rcParams['figure.dpi']= 300
 fig = plt.figure()
+plt.title('scaled volume contraction rate')
 plt.plot(true_vcr, color = 'b')
 plt.plot(infered_vcr , color = 'r')
 plt.show()
 print('VCR inference quality:', 
-stat.pearsonr(np.delete(true_vcr, np.shape(true_vcr)[0]-1), infered_vcr)[0])
+stat.pearsonr(np.delete(true_vcr, 1), infered_vcr)[0])
 print('Correlation matrix of Jacobians:\n', fn.inference_quality(jacobians, true_jacobian))
