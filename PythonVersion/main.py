@@ -22,11 +22,11 @@ import scipy.stats as stat
 
 
 #%%
-ts, jac = mk.make_cr(200)
+ts, jac = mk.make_lv(200)
 
 #%%
 cross_validation_options = ['LOOCV', 'RollingCV']
-cross_validation_type = cross_validation_options[0]
+cross_validation_type = cross_validation_options[1]
 print('Cross validation method:', cross_validation_type)
 length_training = 400
 training_set = ts[0:length_training,:]
@@ -66,7 +66,7 @@ plt.show()
 
 #%%
 #### Out-of-sample statistics
-orizzonte = 50
+orizzonte = 40
 sp = 0
 pred = smap_object.predict(training_set,orizzonte)
 ### Scale back the prediction using the mean and standard deviation of the training set

@@ -1,5 +1,5 @@
 '''
-Here I make predictions from an ensemble of models so that 
+Here I make predictions from an ensemble of models so that
 I can compute uncertainty due to model selection
 Things to do:
 
@@ -24,13 +24,13 @@ import scipy.stats as stat
 
 
 #%%
-ts, jac = mk.make_cr(200)
+ts, jac = mk.make_lv(200)
 
 #%%
 length_training = 400
 training_set = ts[0:length_training,:]
-training_set = training_set #+ training_set*np.random.uniform(-0.05,0.05, (np.shape(training_set)[0],
-                            #                            np.shape(training_set)[1]))
+training_set = training_set #+ np.random.uniform(-0.05,0.05, (np.shape(training_set)[0],
+                            #                          np.shape(training_set)[1]))
 true_jacobian = jac[0:length_training]
 unscaled_training_set = training_set 
 training_set, scaler = fn.scale_training_data(training_set)
@@ -43,6 +43,7 @@ parameters = ParameterGrid({'lambda': np.logspace(-3,0,15),
 print('... This will take a while ...')
 e,l,t = cv.ensemble_rollingcv(parameters, unscaled_training_set, 20)
 print(' ... done')
+
 
 #%%
 #### In sample statistics
@@ -76,7 +77,7 @@ print('Out of sample rmse ensemble:', rmse_ensemble)
 print('Out of sample rmse single:', rmse_single)
 #%%
 plt.rcParams['figure.dpi']= 300
-sp = 3
+sp = 0
 fig = plt.figure(figsize=(5,5))
 plt.plot(np.linspace(0,length_training-1,length_training-1), training_set[1:length_training,sp], color = 'b',
             label = 'Data') 
