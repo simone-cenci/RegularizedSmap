@@ -60,17 +60,15 @@ def rollingcv(grid,dat, orizzonte):
 
 def ensemble_rollingcv(grid,dat, orizzonte, par = False):
 	'''
-	Same as before 
-	but now we take the validation error of the best models over the iterations
-
-	Important note: at the moment the non-parallel version is faster than the parallel counterpart
+	Same as before but now we take the validation error
+	of the best models over the iterations
 	'''
 	if par:
 		num_cores = multiprocessing.cpu_count() - 1
-		error = Parallel(n_jobs=num_cores, backend='threading')(delayed(fun_ensemble)(i, grid,dat, orizzonte) for i in range(len(grid)))
+		error = Parallel(n_jobs=num_cores, backend='multiprocessing')(delayed(fun_rolling)(i, grid,dat, orizzonte) for i in range(len(grid)))
 	else:
 		print('Running not in parallel: safest choice at the moment')
-		error = [fun_ensemble(i, grid,dat, orizzonte) for i in range(len(grid))]
+		error = [fun_rolling(i, grid,dat, orizzonte) for i in range(len(grid))]
 	lam = []
 	tht = []
 	er = []
