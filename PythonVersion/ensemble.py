@@ -8,10 +8,12 @@ from sklearn.model_selection import ParameterGrid
 from sklearn import preprocessing
 import make_ts as mk
 import matplotlib.pylab as plt
+import landscape as ld
 importlib.reload(fn)
 importlib.reload(smr)
 importlib.reload(cv)
 importlib.reload(mk)
+importlib.reload(ld)
 import scipy.stats as stat
 
 
@@ -43,7 +45,7 @@ print(' ... done')
 forecast = []
 train_fit = []
 vcr_list = []
-orizzonte = 40
+orizzonte = 100
 test_data = ts[length_training:(length_training+orizzonte),:]
 rmse_ensemble_out = []
 for n in range(len(l)):
@@ -57,20 +59,15 @@ for n in range(len(l)):
     forecast.append(fn.unscale_test_data(pred, scaler))
 
     ### This is just for plotting the landscape
-    #scaled_test = scaler.transform(test_data)
     rmse_ensemble_out.append(smap_object.score(forecast[n],test_data))
 
+#%%
 lm = np.array([parameters[k]['lambda'] for k in range(len(full_error))])
 th = np.array([parameters[k]['theta'] for k in range(len(full_error))])
-a = np.column_stack([lm,th,full_error])
-np.savetxt('output/training_landscape.txt',  a)
-l = np.squeeze(np.asarray(l))
-t = np.squeeze(np.asarray(t))
-rmse_ensemble_out = np.squeeze(np.asarray(rmse_ensemble_out))
-b = np.column_stack([l,t,rmse_ensemble_out])
-np.savetxt('output/testing_landscape.txt',  b)
-print(rmse_ensemble_out)
+ld.landscape(np.column_stack([lm,th,full_error]))
 
+
+#%%
 train_ens, train_err = fn.ensemble_forecast(train_fit,e)
 pred, err = fn.ensemble_forecast(forecast,e)
 infered_vcr, vcr_err  = fn.ensemble_vcr(vcr_list,e)
@@ -84,6 +81,7 @@ print('Out of sample correlation ensemble:', corr_ensemble)
 print('Out of sample correlation single:', corr_single)
 print('Out of sample rmse ensemble:', rmse_ensemble)
 print('Out of sample rmse single:', rmse_single)
+
 #%%
 plt.rcParams['figure.dpi']= 100
 sp = 0
