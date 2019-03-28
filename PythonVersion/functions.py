@@ -39,7 +39,12 @@ def unscale_test_data(predicted_data, scaler_ts_training):
 	'''
 	pred = scaler_ts_training.inverse_transform(predicted_data)
 	return(pred)
+def unfold_jacobian(X,dim):
+	j = []
 
+	for n in range(np.shape(X)[0]):
+		j.append(X[n,:].reshape(dim,dim))
+	return(j)
 def vcr(X):
 	vol_contraction = [np.trace(X[n]) for n in range(len(X))]
 	return(vol_contraction)
@@ -55,7 +60,7 @@ def inference_quality(X,Y):
 	for i in range(dim):
 		for j in range(dim):
 			inf_ij = [X[n][i,j] for n in range(len(X))]
-			true_ij = [Y[n][i,j] for n in range(len(X))]
+			true_ij = [Y[n+1][i,j] for n in range(len(X))]
 			M[i,j] = stat.pearsonr(inf_ij, true_ij)[0]
 	return(M)
 
@@ -76,3 +81,21 @@ def ensemble_forecast(X,E):
 			M[i,j] = weighted_stats.mean
 			S[i,j] = weighted_stats.std/np.sqrt(len(X))
 	return(M,S)
+def ensemble_vcr(X,E):
+	dim0 = np.shape(X[0])[0]
+	M = [0]*dim0
+	S = [0]*dim0
+	w = make_weights(E)
+	for i in range(dim0):
+		weighted_stats = DescrStatsW([X[n][i] for n in range(len(X))], w, ddof=0)
+		M[i] = weighted_stats.mean
+		S[i] = weighted_stats.std/np.sqrt(len(X))
+	return(M,S)
+
+def put_j_together(X):
+	J=[]
+	dim = np.shape(X[0][0])[0]
+	for n in range(len(X[0])):
+		#J.append(np.reshape(np.stack([X[0][n],X[1][n],X[2][n],X[3][n],X[4][n]]), (5,5)).transpose())
+		J.append(np.reshape(np.stack([X[k][n] for k in range(dim)]), (dim,dim)).transpose())
+	return(J)
