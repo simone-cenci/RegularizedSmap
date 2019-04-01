@@ -22,7 +22,7 @@ length_training = 400
 ts = np.loadtxt('input/deterministic_chaos_k.txt')
 analytical_jacobian = np.loadtxt('input/jacobian_chaos_k.txt')
 #ts = np.loadtxt('input/deterministic_chaos_lv.txt')
-#true_jacobian = np.loadtxt('input/jacobian_chaos_lv.txt')
+#analytical_jacobian = np.loadtxt('input/jacobian_chaos_lv.txt')
 #ts = ts+ts*np.random.normal(0.,0.05*np.std(ts), size =np.shape(ts))
 training_set = ts[0:length_training,:]
 analytical_jacobian = analytical_jacobian[0:length_training,:]
@@ -47,7 +47,7 @@ ld.landscape(np.column_stack([lm,th,full_error]))
 
 #%%
 orizzonte = 40
-### Now make training ensemble, prediction_ensemble and vcr_ensemble
+### Now make training ensemble, prediction_ensemble and jacobians in the ensemble
 train_fit, train_ens, train_err, forecast, cv_forecast, pred, err, \
    cv_vcr, jacobian_list, jac_ens, jac_err = \
    fn.ensemble_method(training_set, l, t, orizzonte, scaler, e)
@@ -98,7 +98,7 @@ plt.legend()
 #%%
 true_jacobian=fn.unfold_jacobian(analytical_jacobian,np.shape(ts)[1])
 true_vcr = np.delete(preprocessing.scale(fn.vcr(true_jacobian)), 0)
-ensemble_vcr= preprocessing.scale(fn.vcr(jac_ens))
+ensemble_vcr = preprocessing.scale(fn.vcr(jac_ens))
 vcr_err = fn.error_on_vcr(jac_err)
 plt.rcParams['figure.dpi']= 100
 fig = plt.figure()
