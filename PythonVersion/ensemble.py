@@ -19,8 +19,8 @@ import scipy.stats as stat
 
 #%%
 length_training = 400
-ts = np.loadtxt('input/deterministic_chaos_fc.txt')
-analytical_jacobian = np.loadtxt('input/jacobian_chaos_fc.txt')
+ts = np.loadtxt('input/deterministic_chaos_cr.txt')
+analytical_jacobian = np.loadtxt('input/jacobian_chaos_cr.txt')
 #ts = ts+ts*np.random.normal(0.,0.05*np.std(ts), size =np.shape(ts))
 training_set = ts[0:length_training,:]
 analytical_jacobian = analytical_jacobian[0:length_training,:]
@@ -76,20 +76,27 @@ plt.fill_between(np.linspace(0,length_training-1,length_training-1), train_ens[:
                                                      train_ens[:,sp]+1.96*train_err[:,sp],
                                                      alpha = 0.5,color= 'r')
 
-fig = plt.figure()
-plt.plot(np.linspace(0,orizzonte,orizzonte), test_data[:,sp], color = 'b',
+fig = plt.figure(figsize = (10,6))
+for sp in range(np.shape(test_data)[1]):
+   number='23'+str(sp+1)
+   plt.subplot(number)
+   titolo='Species '+str(sp+1)
+   plt.title(titolo)
+   plt.plot(np.linspace(0,orizzonte,orizzonte), test_data[:,sp], color = 'b',
             label = 'Data') 
-plt.plot(np.linspace(0,orizzonte,orizzonte), cv_forecast[:,sp], color = 'k', 
+   plt.plot(np.linspace(0,orizzonte,orizzonte), cv_forecast[:,sp], color = 'k', 
             label = 'Minimum error')
-plt.plot(np.linspace(0,orizzonte,orizzonte), pred[:,sp], color = 'red',
+   plt.plot(np.linspace(0,orizzonte,orizzonte), pred[:,sp], color = 'red',
             label = 'Ensemble')
-plt.fill_between(np.linspace(0,orizzonte,orizzonte), pred[:,sp]-1.96*err[:,sp],
+   plt.fill_between(np.linspace(0,orizzonte,orizzonte), pred[:,sp]-1.96*err[:,sp],
                                                      pred[:,sp]+1.96*err[:,sp],
                                                      alpha = 0.5,color= 'r')
-for k in range(len(forecast)):
-	plt.plot(np.linspace(0,orizzonte,orizzonte), forecast[k][:,sp], color = 'g', alpha = 0.5)
+                  
 
-plt.legend()
+   for k in range(len(forecast)):
+	   plt.plot(np.linspace(0,orizzonte,orizzonte), forecast[k][:,sp], color = 'g', alpha = 0.5)
+   if sp ==0:
+      plt.legend()
 
 
 #### VCR inference
@@ -101,14 +108,14 @@ vcr_err = fn.error_on_vcr(jac_err)
 plt.rcParams['figure.dpi']= 100
 fig = plt.figure()
 plt.title('scaled volume contraction rate')
-plt.plot(true_vcr, color = 'b')
-plt.plot(cv_vcr , color = 'k')
-plt.plot(ensemble_vcr , color = 'r')
+plt.plot(true_vcr, color = 'b', label = 'True')
+plt.plot(cv_vcr , color = 'g', label = 'Minimum error')
+plt.plot(ensemble_vcr , color = 'r', label = 'Ensemble')
 plt.fill_between(np.linspace(0,len(ensemble_vcr)-1,len(ensemble_vcr)),
 						 ensemble_vcr-1.96*np.array(vcr_err),
                                                  ensemble_vcr+1.96*np.array(vcr_err),
                                                  alpha = 0.5,color= 'r')
-
+plt.legend()
 print('VCR inference quality:\n',
 '####\n',
 'Correlation coefficient:\n',
