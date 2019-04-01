@@ -2,6 +2,9 @@ import numpy as np
 from sklearn import preprocessing
 import scipy.stats as stat
 from statsmodels.stats.weightstats import DescrStatsW
+import SMap_ridge as smr
+
+
 def time_lagged_ts(dtset, specie = 'all', look_back=1):
 	'''
 	Input dtset = time series
@@ -49,6 +52,16 @@ def vcr(X):
 	vol_contraction = [np.trace(X[n]) for n in range(len(X))]
 	return(vol_contraction)
 
+def error_on_vcr(X):
+	'''
+	The error on the volume contraction rate is sqrt(sum(deltaJ_ii^2))
+	'''
+	eps_vcr = [np.sqrt(np.sum(np.diag(X[n])**2)) for n in range(len(X))]
+	return(eps_vcr)
+
+def rmse(X,Y):
+	return(np.sqrt(np.mean((X-Y)**2)))
+
 def inference_quality(X,Y):
 	'''
 	Compute the correlation coefficient between infered and true Jacobians
@@ -92,10 +105,47 @@ def ensemble_vcr(X,E):
 		S[i] = weighted_stats.std/np.sqrt(len(X))
 	return(M,S)
 
+def ensemble_jacobians(X,E):
+	'''
+	Calculate the ensemble jacobian as a weighted mean
+	'''
+	w = make_weights(E)
+	weigth_X = [[X[n][s]*w[n] for n in range(len(w))] for s in range(np.shape(X)[1])]
+	M = np.shape(X)[1]*np.mean(weigth_X, axis = 1)
+	S = np.std(weigth_X, axis = 1)
+	return(M,S)
+def ensemble_method(train_set, lmb, tht, h, scaler_, eps):
+	'''
+	Get in-sample and out of sample statistics for the ensemble method:
+	1) For each lambda and theta in the ensemble compute prediction and inference
+	2) Take a weighted mean with weights inversely proportional to the training error
+	lmb,tht = lambda, theta
+	h = orizzonte
+	'''
+	forecast = []
+	train_fit = []
+	jacobian_list = []
+	for n in range(len(lmb)):
+		smap_object = smr.SMRidge(lmb[n],tht[n])
+		### Training set
+		c0, jacobians = smap_object.get_para(train_set)
+		jacobian_list.append(jacobians)
+		train_fit.append(smap_object.fit(train_set,c0, jacobians))
+		### Test set
+		pred = smap_object.predict(train_set,h)
+		forecast.append(unscale_test_data(pred, scaler_))
+
+	train_ens, train_err = ensemble_forecast(train_fit,eps)
+	pred, err = ensemble_forecast(forecast,eps)
+	jac_ens, jac_err  = ensemble_jacobians(jacobian_list,eps)
+	cv_forecast = forecast[0]
+	cv_vcr = preprocessing.scale(vcr(jacobian_list[0]))
+	return(train_fit, train_ens, train_err, forecast, cv_forecast, \
+		pred, err, cv_vcr, jacobian_list, jac_ens, jac_err)
+
 def put_j_together(X):
 	J=[]
 	dim = np.shape(X[0][0])[0]
 	for n in range(len(X[0])):
-		#J.append(np.reshape(np.stack([X[0][n],X[1][n],X[2][n],X[3][n],X[4][n]]), (5,5)).transpose())
 		J.append(np.reshape(np.stack([X[k][n] for k in range(dim)]), (dim,dim)).transpose())
 	return(J)

@@ -60,6 +60,8 @@ def loocv(grid, dat, par = False, intercept = True, ensemble = False):
 		min_error = min(error)
 		max_error = max(error)
 		prog = True
+		model=0
+		max_models=30
 		while prog:
 			idx,val = min(enumerate(error), key=itemgetter(1))
 			lam.append(np.round(grid[idx]['lambda'],5))
@@ -68,7 +70,8 @@ def loocv(grid, dat, par = False, intercept = True, ensemble = False):
 			## Set the current minimum value to the max
 			## so that the second smallest value is the new minimum
 			error[idx] = max_error
-			if val>min_error*1.2:
+			model+=1
+			if val>min_error*1.2 or model==max_models:
 				prog = False
 		return(full_error_path, er,lam,tht)
 	else:
@@ -103,6 +106,8 @@ def rollingcv(grid,dat, orizzonte, par = False, intercept = True, ensemble = Fal
 		min_error = min(error)
 		max_error = max(error)
 		prog = True
+		model=0
+		max_models=30
 		while prog:
 			idx,val = min(enumerate(error), key=itemgetter(1))
 			lam.append(np.round(grid[idx]['lambda'],5))
@@ -111,7 +116,8 @@ def rollingcv(grid,dat, orizzonte, par = False, intercept = True, ensemble = Fal
 			## Set the current minimum value to the max
 			## so that the second smallest value is the new minimum
 			error[idx] = max_error
-			if val>min_error*1.2:
+			model+=1
+			if val>min_error*1.2 or model==max_models:
 				prog = False
 		return(full_error_path, er,lam,tht)
 	else:
