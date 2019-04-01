@@ -19,10 +19,8 @@ import scipy.stats as stat
 
 #%%
 length_training = 400
-ts = np.loadtxt('input/deterministic_chaos_k.txt')
-analytical_jacobian = np.loadtxt('input/jacobian_chaos_k.txt')
-#ts = np.loadtxt('input/deterministic_chaos_lv.txt')
-#analytical_jacobian = np.loadtxt('input/jacobian_chaos_lv.txt')
+ts = np.loadtxt('input/deterministic_chaos_fc.txt')
+analytical_jacobian = np.loadtxt('input/jacobian_chaos_fc.txt')
 #ts = ts+ts*np.random.normal(0.,0.05*np.std(ts), size =np.shape(ts))
 training_set = ts[0:length_training,:]
 analytical_jacobian = analytical_jacobian[0:length_training,:]
@@ -66,7 +64,7 @@ print('Out of sample rmse single:', rmse_single)
 
 #%%
 plt.rcParams['figure.dpi']= 100
-sp = 0
+sp = 1
 fig = plt.figure(figsize=(5,5))
 plt.plot(np.linspace(0,length_training-1,length_training-1), training_set[1:length_training,sp], color = 'b',
             label = 'Data')
