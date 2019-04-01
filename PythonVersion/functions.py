@@ -82,7 +82,11 @@ def make_weights(E):
 	Z = np.sum([1./(n+1)*np.exp(-E[n]) for n in range(len(E))])
 	w = [1./(n+1)*np.exp(-E[n])/Z for n in range(len(E))]
 	return(w)
+
 def ensemble_forecast(X,E):
+	'''
+	Compute the forecast from the ensemble
+	'''
 	dim0 = np.shape(X[0])[0]
 	dim1 = np.shape(X[0])[1]
 	M = np.zeros(shape=(dim0,dim1))
@@ -94,25 +98,24 @@ def ensemble_forecast(X,E):
 			M[i,j] = weighted_stats.mean
 			S[i,j] = weighted_stats.std/np.sqrt(len(X))
 	return(M,S)
-def ensemble_vcr(X,E):
-	dim0 = np.shape(X[0])[0]
-	M = [0]*dim0
-	S = [0]*dim0
-	w = make_weights(E)
-	for i in range(dim0):
-		weighted_stats = DescrStatsW([X[n][i] for n in range(len(X))], w, ddof=0)
-		M[i] = weighted_stats.mean
-		S[i] = weighted_stats.std/np.sqrt(len(X))
-	return(M,S)
 
 def ensemble_jacobians(X,E):
 	'''
-	Calculate the ensemble jacobian as a weighted mean
+	Compute the time series of Jacobian coefficients from the ensemble
 	'''
+	dimEnse = np.shape(X)[0]
+	dimSeries = np.shape(X)[1]
+	dim = np.shape(X)[2]
+
+	M = np.zeros(shape=(dimSeries,dim,dim))
+	S = np.zeros(shape=(dimSeries,dim,dim))
 	w = make_weights(E)
-	weigth_X = [[X[n][s]*w[n] for n in range(len(w))] for s in range(np.shape(X)[1])]
-	M = np.shape(X)[1]*np.mean(weigth_X, axis = 1)
-	S = np.std(weigth_X, axis = 1)
+	for s in range(dimSeries):
+		for i in range(dim):
+			for j in range(dim):
+				weighted_stats = DescrStatsW([X[n][s][i,j] for n in range(dimEnse)], w, ddof=0)
+				M[s][i,j] = weighted_stats.mean
+				S[s][i,j] = weighted_stats.std/np.sqrt(dimEnse)
 	return(M,S)
 def ensemble_method(train_set, lmb, tht, h, scaler_, eps):
 	'''
@@ -143,9 +146,3 @@ def ensemble_method(train_set, lmb, tht, h, scaler_, eps):
 	return(train_fit, train_ens, train_err, forecast, cv_forecast, \
 		pred, err, cv_vcr, jacobian_list, jac_ens, jac_err)
 
-def put_j_together(X):
-	J=[]
-	dim = np.shape(X[0][0])[0]
-	for n in range(len(X[0])):
-		J.append(np.reshape(np.stack([X[k][n] for k in range(dim)]), (dim,dim)).transpose())
-	return(J)
