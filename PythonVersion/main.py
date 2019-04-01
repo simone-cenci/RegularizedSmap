@@ -89,7 +89,6 @@ plt.plot(true_vcr, color = 'b')
 plt.plot(infered_vcr , color = 'r')
 print('VCR inference quality:',
 stat.pearsonr(true_vcr, infered_vcr)[0])
-print('Correlation matrix of Jacobians:\n', fn.inference_quality(jacobians, true_jacobian))
 
 ### Show all plots
 plt.show()
