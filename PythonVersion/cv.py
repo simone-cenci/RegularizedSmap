@@ -61,7 +61,7 @@ def loocv(grid, dat, par = False, intercept = True, ensemble = False):
 		max_error = max(error)
 		prog = True
 		model=0
-		max_models=30
+		max_models=100
 		while prog:
 			idx,val = min(enumerate(error), key=itemgetter(1))
 			lam.append(np.round(grid[idx]['lambda'],5))
@@ -107,7 +107,7 @@ def rollingcv(grid,dat, orizzonte, par = False, intercept = True, ensemble = Fal
 		max_error = max(error)
 		prog = True
 		model=0
-		max_models=30
+		max_models=100
 		while prog:
 			idx,val = min(enumerate(error), key=itemgetter(1))
 			lam.append(np.round(grid[idx]['lambda'],5))
