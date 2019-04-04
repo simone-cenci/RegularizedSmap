@@ -1,5 +1,6 @@
 import plotly.plotly as py
 import plotly.graph_objs as go
+from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import plotly
 import pandas as pd
 import plotly.io as pio
@@ -30,6 +31,7 @@ def landscape(z_data):
 
     #plotly.offline.plot({"data": data, "layout": layout}, auto_open = True)
 
-    #fig = go.Figure(data = data, layout = layout)
+    fig = go.Figure(data = data, layout = layout)
+    iplot(fig)
     #static_image_bytes = pio.to_image(fig, format='pdf')
     #Image(static_image_bytes)
