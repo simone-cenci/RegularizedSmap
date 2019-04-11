@@ -46,7 +46,7 @@ def unfold_jacobian(X,dim):
 	j = []
 
 	for n in range(np.shape(X)[0]):
-		j.append(X[n,:].reshape(dim,dim))
+		j.append(np.transpose(X[n,:].reshape(dim,dim)))
 	return(j)
 def vcr(X):
 	vol_contraction = [np.trace(X[n]) for n in range(len(X))]
