@@ -1,8 +1,10 @@
 #%%
 import importlib
-import functions as fn
 import numpy as np
+import sys
+sys.path.append('Functions/')
 import SMap_ridge as smr
+import functions as fn
 import cv as cv
 from sklearn.model_selection import ParameterGrid
 from sklearn import preprocessing
@@ -16,8 +18,8 @@ import scipy.stats as stat
 
 
 #%%
-ts = np.loadtxt('input/deterministic_chaos_k.txt')
-jac = np.loadtxt('input/jacobian_chaos_k.txt')
+ts = np.loadtxt('input/deterministic_chaos_fc.txt')
+jac = np.loadtxt('input/jacobian_chaos_fc.txt')
 cross_validation_options = ['LOOCV', 'RollingCV']
 cross_validation_type = cross_validation_options[0]
 print('Cross validation method:', cross_validation_type)
@@ -80,8 +82,8 @@ print('Out of sample rmse:', rmse_test )
 
 #%%
 infered_vcr = preprocessing.scale(fn.vcr(jacobians))
-true_jacobian=fn.unfold_jacobian(true_jacobian,np.shape(ts)[1])
-true_vcr = np.delete(preprocessing.scale(fn.vcr(true_jacobian)), 0)
+true_jacobian_matrix=fn.unfold_jacobian(true_jacobian,np.shape(ts)[1])
+true_vcr = np.delete(preprocessing.scale(fn.vcr(true_jacobian_matrix)), 0)
 plt.rcParams['figure.dpi']= 100
 fig = plt.figure()
 plt.title('scaled volume contraction rate')
@@ -89,6 +91,5 @@ plt.plot(true_vcr, color = 'b')
 plt.plot(infered_vcr , color = 'r')
 print('VCR inference quality:',
 stat.pearsonr(true_vcr, infered_vcr)[0])
+print(fn.inference_quality(jacobians, true_jacobian_matrix))
 
-### Show all plots
-plt.show()

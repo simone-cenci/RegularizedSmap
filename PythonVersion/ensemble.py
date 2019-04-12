@@ -1,18 +1,18 @@
 #%%
 import importlib
-import functions as fn
 import numpy as np
+import sys
+sys.path.append('Functions/')
 import SMap_ridge as smr
+import functions as fn
+import landscape as ld
 import cv as cv
 from sklearn.model_selection import ParameterGrid
 from sklearn import preprocessing
-import make_ts as mk
 import matplotlib.pylab as plt
-import landscape as ld
 importlib.reload(fn)
 importlib.reload(smr)
 importlib.reload(cv)
-importlib.reload(mk)
 importlib.reload(ld)
 import scipy.stats as stat
 
@@ -101,8 +101,8 @@ for sp in range(np.shape(test_data)[1]):
 
 #### VCR inference
 #%%
-true_jacobian=fn.unfold_jacobian(analytical_jacobian,np.shape(ts)[1])
-true_vcr = np.delete(preprocessing.scale(fn.vcr(true_jacobian)), 0)
+true_jacobian_matrix=fn.unfold_jacobian(analytical_jacobian,np.shape(ts)[1])
+true_vcr = np.delete(preprocessing.scale(fn.vcr(true_jacobian_matrix)), 0)
 ensemble_vcr = preprocessing.scale(fn.vcr(jac_ens))
 vcr_err = fn.error_on_vcr(jac_err)
 plt.rcParams['figure.dpi']= 100
@@ -125,6 +125,10 @@ print('VCR inference quality:\n',
 'RMSE:\n',
 'Cross Validation:', fn.rmse(true_vcr, cv_vcr), '\n',
 'Ensemble:', fn.rmse(true_vcr, ensemble_vcr))
+print('Inference quality of the Jacobian matrix\n',
+'####\n',
+'Correlation coefficient:\n',
+'Cross Validation:', np.nanmean(fn.inference_quality(jacobian_list[0], true_jacobian_matrix)), '\n',
+'Ensemble:', np.nanmean(fn.inference_quality(jac_ens, true_jacobian_matrix)))
 
-plt.show()
 

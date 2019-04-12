@@ -31,7 +31,7 @@ class SMRidge:
 		else:
 			X = np.column_stack((np.repeat(0,np.shape(X)[0]),X))
 		J = inv(X.transpose().dot(W).dot(X) + self.l*np.identity(np.shape(X)[1])).dot(X.transpose()).dot(W).dot(Y)
-		return(J[0], J[1:np.shape(X)[1]])
+		return(J[0], J[1:np.shape(X)[1]].transpose())
 	def get_para(self,dat, intercept = True):
 		'''
 		Implement the fit here
@@ -56,7 +56,7 @@ class SMRidge:
 		'''
 		train_pred = []
 		for tm in range(len(parameters)):
-			train_pred.append(c0[tm] + np.dot(X[tm,:],parameters[tm]))
+			train_pred.append(c0[tm] + np.dot(parameters[tm], X[tm,:].transpose()))
 		return(np.stack(train_pred))
 
 	def iterative_fit(self, M, intercept = True):
@@ -76,7 +76,7 @@ class SMRidge:
 		out_of_samp = []
 		for n in range(horizon):
 			c0, para = self.iterative_fit(Xx, intercept)
-			prd = c0 +  np.dot(Xx[np.shape(Xx)[0]-1,:],para)
+			prd = c0 +  np.dot(para, Xx[np.shape(Xx)[0]-1,:].transpose())
 			Xx = np.vstack([Xx, prd])
 			out_of_samp.append(prd)
 		return(np.stack(out_of_samp))
