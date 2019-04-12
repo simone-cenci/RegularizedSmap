@@ -18,8 +18,8 @@ import scipy.stats as stat
 
 
 #%%
-ts = np.loadtxt('input/deterministic_chaos_fc.txt')
-jac = np.loadtxt('input/jacobian_chaos_fc.txt')
+ts = np.loadtxt('input/deterministic_chaos_cr.txt')
+jac = np.loadtxt('input/jacobian_chaos_cr.txt')
 cross_validation_options = ['LOOCV', 'RollingCV']
 cross_validation_type = cross_validation_options[0]
 print('Cross validation method:', cross_validation_type)
