@@ -31,7 +31,7 @@ Regression.Kernel = Kernel.Options[kernel.choice]
 ###################################
 logspace <- function(d1, d2, n) exp(log(10)*seq(d1, d2, length.out=n)) 
 ############# Parameters for cross validation
-parameters_on_grid = expand.grid(logspace(-1.5,1.2,15) , logspace(-5,0,15))     
+parameters_on_grid = expand.grid(logspace(-1.5,1.2,15) , logspace(-3,0,15))     
 ##### length of training and test set
 length.training = 400
 length.testing = 100
